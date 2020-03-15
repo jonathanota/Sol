@@ -1,0 +1,80 @@
+{
+   "results" : [
+
+      {
+         "address_components" : [
+            {
+               "long_name" : "300",
+               "short_name" : "300",
+               "types" : [ "street_number" ]
+            },
+            {
+               "long_name" : "Vernon Street",
+               "short_name" : "Vernon St",
+               "types" : [ "route" ]
+            },
+            {
+               "long_name" : "Adams Point",
+               "short_name" : "Adams Point",
+               "types" : [ "neighborhood", "political" ]
+            },
+            {
+               "long_name" : "Oakland",
+               "short_name" : "Oakland",
+               "types" : [ "locality", "political" ]
+            },
+            {
+               "long_name" : "Alameda County",
+               "short_name" : "Alameda County",
+               "types" : [ "administrative_area_level_2", "political" ]
+            },
+            {
+               "long_name" : "California",
+               "short_name" : "CA",
+               "types" : [ "administrative_area_level_1", "political" ]
+            },
+            {
+               "long_name" : "United States",
+               "short_name" : "US",
+               "types" : [ "country", "political" ]
+            },
+            {
+               "long_name" : "94610",
+               "short_name" : "94610",
+               "types" : [ "postal_code" ]
+            }
+         ],
+         "formatted_address" : "300 Vernon St, Oakland, CA 94610, USA",
+         "geometry" : {
+            "bounds" : {
+               "northeast" : {
+                  "lat" : 37.8147143,
+                  "lng" : -122.2567501
+               },
+               "southwest" : {
+                  "lat" : 37.8143748,
+                  "lng" : -122.2571666
+               }
+            },
+            "location" : {
+               "lat" : 37.8145511,
+               "lng" : -122.2569259
+            },
+            "location_type" : "ROOFTOP",
+            "viewport" : {
+               "northeast" : {
+                  "lat" : 37.81589353029149,
+                  "lng" : -122.2556093697085
+               },
+               "southwest" : {
+                  "lat" : 37.8131955697085,
+                  "lng" : -122.2583073302915
+               }
+            }
+         },
+         "place_id" : "ChIJYWBUVFCHj4ARjTWFDN2hQsY",
+         "types" : [ "premise" ]
+      }
+   ],
+   "status" : "OK"
+}
