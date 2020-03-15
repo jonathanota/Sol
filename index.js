@@ -27,20 +27,6 @@ if (everloop.length == 35) {
     ledAdjust = 1.01; // MATRIX Voice
 }
 
-// ------ Get key from external key file ------ //
-function getKey(keyName){
-  fs.readFile('keys.json', 'utf8', function(err, contents){
-    if (err){
-      console.log("Something went wrong reading the location file.");
-      return err;
-    }
-    var keys = JSON.parse(contents);
-    // console.log(keys[keyName]);
-    return keys[keyName];
-});
-}
-
-
 // --- Check if file for location exists, if not ask to create one -- //
 locationFileCheck();
 
@@ -152,4 +138,17 @@ function whatsUpSun(lat, lng){
   // console.log("Sunrise: " + times.sunrise);
   // console.log(sunAlt);
   return sunAlt;
+}
+
+// ------ Get key from external key file ------ //
+function getKey(keyName){
+  fs.readFile('keys.json', 'utf8', function(err, contents){
+    if (err){
+      console.log("Something went wrong reading the key file.");
+      return err;
+    }
+    var keys = JSON.parse(contents);
+    // console.log(keys[keyName]);
+    return keys[keyName];
+});
 }

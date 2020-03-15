@@ -1,5 +1,5 @@
 {
-  "name": "RoboSun",
+  "name": "Sol",
   "version": "1.0.0",
   "description": "Test of the matrix labs + git hub -> raspberry pi connection",
   "main": "index.js",
@@ -8,15 +8,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jonathanota/RoboSun.git"
+    "url": "git+https://github.com/jonathanota/Sol.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/jonathanota/RoboSun/issues"
+    "url": "https://github.com/jonathanota/Sol/issues"
   },
-  "homepage": "https://github.com/jonathanota/RoboSun#readme",
+  "homepage": "https://github.com/jonathanota/Sol#readme",
   "dependencies": {
     "@matrix-io/matrix-lite": "^0.4.6",
     "color-interpolate": "^1.0.5",
