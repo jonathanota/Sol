@@ -1,6 +1,8 @@
 
 // ---- Load Libraries ---- //
 const fs = require('fs');
+const SerialPort = require('serialport');
+const Readline = require('@serialport/parser-readline');
 const matrix = require("@matrix-io/matrix-lite");
 var SunCalc = require('suncalc');
 const interpolate = require('color-interpolate');
@@ -15,6 +17,18 @@ let globalLong = 0;
 let locationSet = false;
 
 var mic = matrix.alsa.mic();
+
+// ----- Setup Serial Port ----- //
+  //open the Port
+  //make sure the port has been successfully opened
+
+  // const sol = new SerialPort("", function(err){
+  //     if (err){
+  //       return console.log('Error: ', err.message)
+  //     }
+  // });
+
+  // const parser = sol.pipe(new Readline({ delimiter: '\n' }));
 
 // ----- Setup LED array ----- //
 let everloop = new Array(matrix.led.length);
@@ -47,14 +61,13 @@ function locationFileCheck (){
 }
 
 // --------- Run Sun ---------- //
-// if (locationSet){
-setInterval(mapLEDColor, 100);
-// }
+//setInterval sets how many time the linked to function runs
+setInterval(sunLight, 100);
 
 // ------ Set sun behavior ----- //
 let dayColors = d3.interpolateRgbBasis(["rgb(225,76,6)","rgb(97,99,104)","rgb(255,255,255)"]);
 let twilightColors = d3.interpolateRgbBasis(["rgb(225,76,6)","rgb(26,14,21)","rgb(0,0,0)"]);
-function mapLEDColor(){
+function sunLight(){
   let maxSunAlt = 68;
   let minSunAlt = -6.3;
   let sunFraction = whatsUpSun(globalLat, globalLong)/maxSunAlt;
@@ -70,6 +83,53 @@ function mapLEDColor(){
   else {
     matrix.led.set({r:0,g:0,b:0,w:0});
   }
+
+  //Insert sunRise function to take the calculations made here and translate into motor control
+
+
+
+}
+
+function sunRise(xPos, yPos, zPos){
+  //Get sun position value
+  //Transform sun position value into rotations from the arduino
+  //Check to see if the connection is up
+  //If the connection is up send sun position value
+  //Wait for arduino to confirm the motor has reached destination
+  //After receiving confirmation, send another destination
+  //Send protocol: <x,y,z>
+  //Receive protocol: strings? Char?
+
+  // Read the port data
+  sol.on("open", () => {
+    console.log('serial port open');
+  });
+  parser.on('data', data =>{
+    switch(data) {
+      case "calibrating":
+        console.log("Sol is calibrating");
+        break;
+      case "ready":
+        console.log("Sol is ready");
+        console.log("Sending: " + '<' + xPos + ',' + yPos + ',' + zPos + '>');
+        sol.write('<' + xPos + ',' + yPos + ',' + zPos + '>');
+        break;
+      case "reached destination":
+        console.log("Sol reached destination –– sending new data");
+
+        break;
+      case "same data":
+        console.log("Sol received the same data");
+
+    }
+
+
+    console.log('got word from arduino:', data);
+  });
+
+
+
+
 }
 
 // ------ Ask for user input ------ //
