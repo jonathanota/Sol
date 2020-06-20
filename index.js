@@ -21,49 +21,47 @@ var prevMotorPos = 0;
 let sunAlt = 0;
 let sunFraction = 0;
 let maxHeight = 0;
+let prevLEDColor = "";
 
+//Var's to hold incoming messages from Arduinos
 let solStatus = "";
+let solLightStatus = "";
 
 var mic = matrix.alsa.mic();
 
-// ----- Setup Serial Port ----- //
+// ----- Setup Serial Port for Motor & Light Control ----- //
   //open the Port
   //make sure the port has been successfully opened
   const port = "/dev/ttyACM0";
   const sol = new SerialPort(port, {baudRate: 115200});
-  // const sol = new SerialPort(port, function(err){
-  //     if (err){
-  //       return console.log('Error: ', err.message)
-  //     }
-  //     // autoOpen: false
-  //     // lock: true
-  //     baudRate: 115200
-  // });
-
   const parser = sol.pipe(new Readline({ delimiter: '\r\n', encoding: 'utf8' }));
 
   sol.on("open", () => {
-    console.log('serial port open');
-
-    var terminal_input = process.stdin;
-    terminal_input.setEncoding('utf-8');
-    console.log("Ready to calibrate?");
-    //auto calibrate
-
-    // terminal_input.on('data', function(data){
-    //     sol.write(data);
-    // });
+    console.log('motor serial port open');
   });
 
   sol.on("close", () => {
       open();
   });
 
+const lightPort = "/dev/ttyACM1";
+const solLight = new SerialPort(lightPort, {baudRate: 115200});
+const lightParser = solLight.pipe(new Readline({ delimiter: '\r\n', encoding: 'utf8' }));
 
-  function open() {
+solLight.on("open", () => {
+  console.log('light serial port open');
+});
+
+solLight.on("close", () => {
+    open();
+});
+
+
+// ----- Re-open port if it somehow closes randomly ---- //
+function open() {
     sol.open(function (err) {
         if (err){
-          console.log('Port is not open: ' + err.message);
+          console.log('Motor port is not open: ' + err.message);
           setTimeout(open, 1000); // next attempt to open after 1s
         }
         else {
@@ -71,18 +69,27 @@ var mic = matrix.alsa.mic();
         return;
         }
     });
+    solLight.open(function (err) {
+        if (err){
+          console.log('Light port is not open: ' + err.message);
+          setTimeout(open, 1000); // next attempt to open after 1s
+        }
+        else {
+        solLight.resume();
+        return;
+        }
+    });
 }
-  // parser.on('data', console.log)
 
 // ----- Setup LED array ----- //
-let everloop = new Array(matrix.led.length);
-// var inputStream = mic.getAudioStream();
-let ledAdjust = 0.0;
-if (everloop.length == 35) {
-    ledAdjust = 0.51; // MATRIX Creator
-} else {
-    ledAdjust = 1.01; // MATRIX Voice
-}
+// let everloop = new Array(matrix.led.length);
+// // var inputStream = mic.getAudioStream();
+// let ledAdjust = 0.0;
+// if (everloop.length == 35) {
+//     ledAdjust = 0.51; // MATRIX Creator
+// } else {
+//     ledAdjust = 1.01; // MATRIX Voice
+// }
 
 // --- Check if file for location exists, if not ask to create one -- //
 locationFileCheck();
@@ -96,48 +103,84 @@ setInterval(sunLight, 100);
 
 // Read the port data
 parser.on('data', data =>{
-
-  // var newData = new TextEncoder("utf-8").encode(data);
-  // var existingData = new TextEncoder("utf-8").encode("ready");
-  // console.log(newData);
-  // console.log(existingData);
-
   solStatus = data;
-
   //Set the maximum height to sol
   var solStatusSplit = solStatus.split(",");
   if (solStatusSplit[0] == "maxHeight"){
     maxHeight = parseInt(solStatusSplit[1]);
     console.log(maxHeight);
   }
+});
 
-
+lightParser.on('data', data => {
+  solLightStatus = data;
 });
 
 
 // ------ Set sun behavior ----- //
 let dayColors = d3.interpolateRgbBasis(["rgb(225,76,6)","rgb(97,99,104)","rgb(255,255,255)"]);
+// let dayColors = d3.interpolateRgbBasis(["<225,76,6>","<97,99,104>","<255,255,255>"]);
 let twilightColors = d3.interpolateRgbBasis(["rgb(225,76,6)","rgb(26,14,21)","rgb(0,0,0)"]);
 function sunLight(){
   let maxSunAlt = 80;
   let minSunAlt = -6.3;
+  let fadeInterval = 250;
+  let whiteLED = 0;
   sunAlt = whatsUpSun(globalLat, globalLong);
   sunFraction = sunAlt/maxSunAlt;
   let twilightFraction = sunAlt/minSunAlt;
-  // console.log("Twilight Fraction:" + " " + twilightFraction);
-  // console.log(twilightColors(twilightFraction).toString());
-  if (sunFraction > 0 && sunFraction < 1){
-    matrix.led.set(dayColors(sunFraction).toString());
-  }
-  else if (sunFraction < 0 && twilightFraction < 1){
-    matrix.led.set(twilightColors(twilightFraction).toString());
-  }
-  else {
-    matrix.led.set({r:0,g:0,b:0,w:0});
+
+  let dayColorsSpliced = dayColors(sunFraction).toString().slice(3);
+      //do some string wrangling to open it up for additional things like fade interval
+      dayColorsSpliced = dayColorsSpliced.replace(")", ", ");
+  let twilightColorsSpliced = twilightColors(twilightFraction).toString().slice(3);
+      twilightColorsSpliced = twilightColorsSpliced.replace(")", ", ");
+
+      // console.log(twilightColorsSpliced);
+  // create a container to hold the crazy string
+  let colorMessage = "";
+
+  switch(solLightStatus){
+    case "Ready":
+      // console.log("LED ready");
+      if (sunFraction > 0 && sunFraction < 1){
+        colorMessage = (dayColorsSpliced + whiteLED + ", " + fadeInterval + ")");
+        if (prevLEDColor != colorMessage){
+          // matrix.led.set(dayColors(sunFraction).toString());
+          solLight.write(colorMessage);
+          // console.log(colorMessage);
+        }
+        prevLEDColor = colorMessage;
+      }
+      else if (sunFraction < 0 && twilightFraction < 1){
+        colorMessage = (twilightColorsSpliced + whiteLED + ", " + fadeInterval + ")");
+        if (prevLEDColor != colorMessage){
+          // matrix.led.set(twilightColors(twilightFraction).toString());
+          solLight.write(colorMessage);
+          console.log("New color - " + colorMessage);
+        }
+        prevLEDColor = colorMessage;
+        // console.log("Previous color - " + prevLEDColor);
+      }
+      else {
+        colorMessage = ("(0,0,0,0," + fadeInterval + ")");
+        if (prevLEDColor != colorMessage){
+          // matrix.led.set({r:0,g:0,b:0,w:0});
+          solLight.write(colorMessage);
+        }
+        prevLEDColor = colorMessage;
+      }
+    break;
+    case "Received Data":
+      console.log("LED received data");
+    break;
+    case "Data Parsed":
+      console.log("LED parsed data");
+    break;
+    default:
+    console.log(solLightStatus);
   }
 
-    //trying to change the interval to give the serial port time to breathe
-    // setInterval(sunRise, 500);
     sunRise();
 
 }
@@ -160,7 +203,7 @@ function sunRise(){
 
   switch(solStatusSplit[0]) {
     case "Ready":
-      sol.write('c\n\r');
+      sol.write('c\n\r'); //send the calibration byte start calibration routine
     break;
     case "Calibrating-Min":
       console.log("Sol is calibrating");

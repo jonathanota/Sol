@@ -1,1 +1,1 @@
-Test of the matrix labs + git hub -> raspberry pi connection
+Sol: an animatronic sun
