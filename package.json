@@ -20,7 +20,7 @@
   "dependencies": {
     "@matrix-io/matrix-lite": "^0.4.6",
     "color-interpolate": "^1.0.5",
-    "d3-interpolate": "^1.4.0",
+    "d3-interpolate": "^3.0.1",
     "serial-node": "0.0.11",
     "serialport": "^8.0.7",
     "suncalc": "^1.8.0",
